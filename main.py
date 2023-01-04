@@ -24,7 +24,7 @@ myClock = time.Clock()
 rocks = transform.scale(image.load("Pics//IceCorner01.png"), (res, res))
 iceCorner = transform.scale(image.load("Pics/IceCorner01.png"), (res, res))
 iceWall = transform.scale(image.load("Pics/IceWall01.png"), (res, res))
-
+counter = 0
 
 class Object:
     def __init__(self, x, y, w, h):
@@ -78,6 +78,10 @@ class ShooterEnemy(Entity):
             if self.y < player.y:
                 self.y -= speed
 
+    def shooterEnemyBullet(self, enemy_bullet_list, mx, my):
+        #print(self.x, self.y)
+        if counter % 60 == 0:
+            enemy_bullet_list.append(Bullets(self.x, self.y, mx, my, (0, 255, 255)))
 
 class Player(Entity):
     def __init__(self, x, y, w, h):
@@ -86,7 +90,7 @@ class Player(Entity):
         self.counter = 20
 
     def movePlayer(self):
-        velCap = 1.55
+        velCap = 2.55
         velReduce = 0.01
         # print(self.xVel, self.yVel)
         self.xVel = round(self.xVel, 2)
@@ -184,7 +188,7 @@ class IceWalls(Object):
 # ------------------------------------ Global functions ------------------------------------
 def generateRooms(roomList):
     if len(roomList) > 10:
-        print(roomList)
+        # print(roomList)
         return roomList
     xCode, yCode = 0, 0
     if randint(2, 3) % 2 == 0:
@@ -204,44 +208,53 @@ def generateRooms(roomList):
     return generateRooms(roomList)
 
 
-def doorWayRoute(rooms,doorways):
+def doorWayRoute(rooms, doorways, playerDoorwayLocations):
     tempList = []
+    backList = []
     for i in range(1, len(rooms)):
         if rooms[i][0] > rooms[i - 1][0]:
-            tempList.append(doorways.get("right"))
-            print("Right")
+            tempList.append((doorways.get("right"), playerDoorwayLocations.get("right")))
+            backList.append((doorways.get("left"), playerDoorwayLocations.get("left")))
+            # print("Right")
         elif rooms[i][0] < rooms[i - 1][0]:
-            tempList.append(doorways.get("left"))
-            print("left")
+            tempList.append((doorways.get("left"), playerDoorwayLocations.get("left")))
+            backList.append((doorways.get("right"), playerDoorwayLocations.get("right")))
+            # print("left")
         if rooms[i][1] > rooms[i - 1][1]:
-            tempList.append(doorways.get("up"))
-            print("Up")
+            tempList.append((doorways.get("up"), playerDoorwayLocations.get("up")))
+            backList.append((doorways.get("down"), playerDoorwayLocations.get("down")))
+            # print("Up")
         elif rooms[i][1] < rooms[i - 1][1]:
-            tempList.append(doorways.get("down"))
-            print("Down")
-    return tempList
-
-def doorwayCollision(player, doorways, roomNum, playerDoorwayLocation, rooms):
-    for i in doorways:
-        if object_collision(player, doorways.get(i)):
-            player.x = playerDoorwayLocation.get(i)[0]
-            player.y = playerDoorwayLocation.get(i)[1]
-            return roomNum + 1
-    return roomNum
+            tempList.append((doorways.get("down"), playerDoorwayLocations.get("down")))
+            backList.append((doorways.get("up"), playerDoorwayLocations.get("up")))
+            # print("Down")
+    return tempList, backList
 
 
-def detect_object_collision(obj_1, obj_2):
+def doorwayCollision(player, roomNum, doorRoute, backdoorRoute):
+    if object_collision(player, doorRoute[roomNum][0]):  # If collides with a front door
+        player.x = doorRoute[roomNum][1][0]  # Send the player to the right location
+        player.y = doorRoute[roomNum][1][1]
+        return roomNum + 1  # Increase room number
+    if object_collision(player, backdoorRoute[roomNum - 1][0]) and roomNum > 0:  # If collides with back door
+        player.x = backdoorRoute[roomNum - 1][1][0]  # Sends the player to the right location
+        player.y = backdoorRoute[roomNum - 1][1][1]  # -1 since its the last rooms reverse door, not the current reverse
+        return roomNum - 1  # Decreases room number
+    return roomNum  # If neither then just return room number
+
+
+def detect_object_collision(obj_1, obj_2):  # Quick func to check if 2 objects collide
     obj_1_rect = Rect(obj_1.x, obj_1.y, obj_1.w, obj_1.h)
     obj_2_rect = Rect(obj_2.x, obj_2.y, obj_2.w, obj_2.h)
     if Rect.colliderect(obj_1_rect, obj_2_rect):
         return True
 
 
-def object_collision(obj_1, obj_2):
-    obj_1_rect = Rect(obj_1.x, obj_1.y, obj_1.w, obj_1.h)
+def object_collision(obj_1, obj_2):  # Checks rect to rect collision of 2 objects, and prevents them from moving
+    obj_1_rect = Rect(obj_1.x, obj_1.y, obj_1.w, obj_1.h)  # into one another
     obj_left_border = Rect(obj_2.x, obj_2.y + 2, 2, obj_2.h - 4)
     obj_right_border = Rect(obj_2.x + obj_2.w - 2, obj_2.y + 2, 2, obj_2.h - 4)
-    obj_up_border = Rect(obj_2.x, obj_2.y, obj_2.w, 2)
+    obj_up_border = Rect(obj_2.x, obj_2.y, obj_2.w, 2)  # Narrow borders of the second object
     obj_down_border = Rect(obj_2.x, obj_2.y + obj_2.h - 2, obj_2.w, 2)
     # borders = [(obj_up_border, GREEN), (obj_down_border, GREEN), (obj_left_border, BLUE), (obj_right_border, BLUE)]
     # draw.rect(screen, BLACK, obj_down_border)
@@ -266,6 +279,11 @@ def object_collision(obj_1, obj_2):
 
 
 # def cirToRectColl(circle, rect):
+#     tempList = []
+#     x, y, itr = 0, 0, 0
+#     if rect.w == itr:
+#         for i in tempList:
+#             pass#if dist_collision(c)
 
 
 def push_object(obj_1, obj_2):
@@ -325,7 +343,7 @@ def fileWriting(keys, mx, my):
         drawTemp.append((Rect(row * res, col * res, res, res), BLUE))
     # pprint(fileList)
     if keys[K_SPACE]:
-        newFile = open("Levels/new.txt", "w")
+        newFile = open("Levels/updown0.txt", "w")
         pprint(fileList)
         for row in fileList:
             for col in row:
@@ -342,22 +360,46 @@ def readFile(file, blocks):
     for i in range(len(text)):
         text[i] = text[i].split(",")
         text[i].pop()
-    pprint(text)
+    # pprint(text)
     for r in range(len(text)):
         for c in range(len(text[r])):
             for key in blocks.keys():
                 if text[r][c] == key:
-                    returnList.append(Object(r * res, c * res, res, res))
+                    print(blocks.get(key))
+                    returnList.append((blocks.get(key)(r * res, c * res, res, res)))
+                    print(returnList)
     return returnList
 
 
+def findRoomObjects(roomNum, doorRoute, backdoorRoute, blocks, doorways):
+    #print(f"Door Route{doorRoute}")
+    #return readFile(open("Levels/lvl_0" + str(0) + ".txt"), blocks)
+    #print(f"backDoorRoute{backdoorRoute}")
+    if roomNum == 0:
+        return readFile(open("Levels/lvl_00.txt"), blocks)
+    for i in doorways:
+        if doorRoute[roomNum][0] == doorways.get(i):
+            for j in doorways:
+                if backdoorRoute[roomNum-1][0] == doorways.get(j):
+                    try:
+                        return readFile(open("Levels/" + str(j) + str(i) + str(0) + ".txt"), blocks)
+                    except:
+                        return readFile(open("Levels/" + str(i) + str(j) + str(0) + ".txt"), blocks)
+                    #return readFile(open("Levels/lvl_0" + str(1) + ".txt"), blocks)
+    return readFile(open("Levels/lvl_0" + str(1) + ".txt"), blocks)
+    # if doorRoute[roomNum] == doorways.get("up") and backdoorRoute[roomNum - 1] == doorways.get("down"):
+    #     return readFile(open("Levels/lvl_0" + str(roomNum) + ".txt"), blocks)
+
+
 def main():
+    global counter
     player_bullet_list = []
+    enemy_bullet_list = []
     player = Player(50, 50, 30, 30)
     enemy = ShooterEnemy(50, 50, 90, 90)
     running = True
     bullCount = 0
-    roomNum = 0
+    roomNum, oldRoomNum = 0, 0
     rooms = generateRooms([(0, 0)])
     doorways = {"up": Object(width / 2 - res, 0, 2 * res, res),
                 "down": Object(width / 2 - res, height - res, 2 * res, res),
@@ -367,13 +409,16 @@ def main():
                              "down": (width / 2, res * 2),  # Same keys as doorways to make it easier
                              "left": (width - res * 2, height / 2),  # to link with both
                              "right": (res * 2, height / 2)}
-    blocks = {"r": Rock(0, 0, res, res),
-              }
-    roomObjects = readFile(open("Levels/new.txt", 'r'), blocks)
+    blocks = {"r": Rock,
+              "s": ShooterEnemy}
     # print(roomObjects)
-    doorRoute = doorWayRoute(rooms, doorways)
+    doorRoute, backdoorRoute = doorWayRoute(rooms, doorways, playerDoorwayLocation)[0], \
+                               doorWayRoute(rooms, doorways, playerDoorwayLocation)[1]
+    roomObjects = findRoomObjects(roomNum, doorRoute, backdoorRoute, blocks,
+                                  doorways)
     while running:
         # print(roomNum)
+        counter +=1
         bullCount += 1
         for evt in event.get():
             if evt.type == QUIT:
@@ -386,23 +431,35 @@ def main():
         # screen.blit(rocks[0], (0, 0, res, res))
         #  ----- Drawing -----
         # blitCorners()
+         # readFile(open("Levels/lvl_0" + str(roomNum) + ".txt", 'r'), blocks)
+        roomNum = doorwayCollision(player, roomNum, doorRoute, backdoorRoute)
+        if roomNum != oldRoomNum:
+            roomObjects = findRoomObjects(roomNum, doorRoute, backdoorRoute, blocks,
+                                      doorways)
         for i in roomObjects:
-            print(i.x, i.y)
-        Object.drawObject(doorRoute[roomNum])
-        roomNum = doorwayCollision(player, doorways, roomNum, playerDoorwayLocation, rooms)
+            Object.drawObject(i)
+            if isinstance(i, ShooterEnemy):
+                ShooterEnemy.shooterEnemyBullet(i, enemy_bullet_list, player.x, player.y)
+                ShooterEnemy.drawObject(i)
+                ShooterEnemy.moveShooterEnemy(i, player)
+        # print(doorRoute[roomNum][0])
+        Object.drawObject(doorRoute[roomNum][0])
+        if roomNum > 0:
+            Object.drawObject(backdoorRoute[roomNum - 1][0])
         # for i in doorways.keys():
         #     Object.drawObject(doorways.get(i))
-        # Object.drawObject()
         player.drawPlayer()
-        enemy.drawObject()
-        enemy.moveShooterEnemy(player)
+
+
         for i in player_bullet_list:
-            Bullets.draw_bullets((i))
+            Bullets.draw_bullets(i)
+        for i in enemy_bullet_list:
+            Bullets.draw_bullets(i)
 
         player.trig(mx, my)
         player.movePlayer()
         player.key_input(mx, my, mb, 0.5, player_bullet_list, bullCount)
-
+        oldRoomNum = roomNum
         myClock.tick(60)
         display.flip()
 
