@@ -13,6 +13,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -24,13 +32,16 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/Levels" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Pics" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Ali\Documents\GitHub\Gr11FSEFinal\Pics" />
+      <recent name="C:\Users\Ali\Documents\GitHub\Gr11FSEFinal" />
       <recent name="C:\Users\Ali\Documents\GitHub\Gr11FSEFinal\Levels" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Ali\Documents\GitHub\Gr11FSEFinal\Pics\chaserSpriteList" />
       <recent name="C:\Users\Ali\Documents\GitHub\Gr11FSEFinal" />
     </key>
   </component>
